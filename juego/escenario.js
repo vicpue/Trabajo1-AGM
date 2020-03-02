@@ -1,8 +1,9 @@
 /*
-**Seminario #1: Grafo de escena
-**@author: daflobar@alumno.upv.es
-**@date: 19-02-2020
+**Tranajo #1: Breakout Game
+**@author: vicaspue@alumno.upv.es
+**@date: 02-03-2020
 */
+
 
 // Variables globales estandar
 
@@ -12,6 +13,10 @@ var renderer, scene, camera;
 var angulo = 0;
 var conjunto;
 var colorMarco = 0x0C7C7C;
+
+//marco 
+var SupInf = 23;
+var Lateral = 18;
 
 init();
 loadScene();
@@ -31,7 +36,7 @@ function init() {
      var aspectRatio = window.innerWidth/window.innerHeight;
      camera = new THREE.PerspectiveCamera( 75, aspectRatio, 0.1, 100);
      //camera = new THREE.OrthographicCamera(-10,10,10/aspectRatio,-10/aspectRatio,0.1,100); //Camara aortografica
-     camera.position.set(0, 0, 20);
+     camera.position.set(0, 4, 40);
      camera.lookAt(new THREE.Vector3(0,0,0) );
 
       //Control de camera
@@ -42,6 +47,10 @@ function init() {
      //Atender a eventos
      window.addEventListener('resize',updateAspectRatio);
 }
+
+
+
+
 
 
 function loadScene() {
@@ -55,44 +64,42 @@ function loadScene() {
   conjunto.position.y = 0;
 
   //Cubo 
-  var geoCubo = new THREE.BoxGeometry(5, 0.5, 0.5);
+
+  var geoCubo = new THREE.BoxGeometry(6, 0.5, 0.5);
   var matCubo = new THREE.MeshBasicMaterial({ color: 0xB0FCFC});
   var cubo = new THREE.Mesh(geoCubo, matCubo);
   cubo.position.x = 0;
-  cubo.position.y = -11;
+  cubo.position.y = -SupInf + 3;
 
   //MARCO INFERIOR - SUPERIOR
-  var geoMarcoInferior = new THREE.BoxGeometry(28,0.5,1);
+  var geoMarcoInferior = new THREE.BoxGeometry(34,1,1);
   var matMarcoInferior = new THREE.MeshBasicMaterial({color : colorMarco});
 
   var marcoInferor = new THREE.Mesh(geoMarcoInferior,matMarcoInferior);
-  marcoInferor.position.y = -14;
+  marcoInferor.position.y = -SupInf;
 
   var marcoSuperior = new THREE.Mesh(geoMarcoInferior,matMarcoInferior);
-  marcoSuperior.position.y=14;
-
+  marcoSuperior.position.y= SupInf;
 
   //MARCO LATERAL DERECHO - IZQUIERDO
   
-  var geoMarcoLateral = new THREE.BoxGeometry(0.5,28,1);
+  var geoMarcoLateral = new THREE.BoxGeometry(1,43,1);
   var matMarcoLateral = new THREE.MeshBasicMaterial({color : colorMarco});
 
   var marcoLateralDerecho = new THREE.Mesh(geoMarcoLateral,matMarcoLateral);
-  marcoLateralDerecho.position.x = 15;
+  marcoLateralDerecho.position.x = Lateral;
 
   var marcoLateralIzquierdo = new THREE.Mesh(geoMarcoLateral,matMarcoLateral);
-  marcoLateralIzquierdo.position.x = -15;
+  marcoLateralIzquierdo.position.x = -Lateral;
 
-  
   //Grafo
   conjunto.add(marcoInferor);
   conjunto.add(marcoSuperior);
   conjunto.add(marcoLateralDerecho);
   conjunto.add(marcoLateralIzquierdo);
   conjunto.add(cubo);
-  scene.add(new THREE.AxesHelper(3));
-  scene.add(conjunto);
-
+ // scene.add(new THREE.AxesHelper(3));
+  scene.add(conjunto);  
 }
 
 function update(){
@@ -124,3 +131,4 @@ function updateAspectRatio(){
   
   
   }
+ 
