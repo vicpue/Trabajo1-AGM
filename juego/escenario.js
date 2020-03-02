@@ -10,8 +10,8 @@ var renderer, scene, camera;
 
 //Otras Variables
 var angulo = 0;
-var esfera;
 var conjunto;
+var colorMarco = 0x0C7C7C;
 
 init();
 loadScene();
@@ -31,7 +31,7 @@ function init() {
      var aspectRatio = window.innerWidth/window.innerHeight;
      camera = new THREE.PerspectiveCamera( 75, aspectRatio, 0.1, 100);
      //camera = new THREE.OrthographicCamera(-10,10,10/aspectRatio,-10/aspectRatio,0.1,100); //Camara aortografica
-     camera.position.set(0.5, 2, 5);
+     camera.position.set(0, 0, 20);
      camera.lookAt(new THREE.Vector3(0,0,0) );
 
       //Control de camera
@@ -51,69 +51,55 @@ function loadScene() {
   // - Organizar el grafo
 
   conjunto = new THREE.Object3D();
-  conjunto.position.y = 1;
+  conjunto.position.x= 0;
+  conjunto.position.y = 0;
 
   //Cubo 
-  var geoCubo = new THREE.BoxGeometry(2, 2, 2);
-  var matCubo = new THREE.MeshBasicMaterial({ color: 'green', wireframe: true });
+  var geoCubo = new THREE.BoxGeometry(5, 0.5, 0.5);
+  var matCubo = new THREE.MeshBasicMaterial({ color: 0xB0FCFC});
   var cubo = new THREE.Mesh(geoCubo, matCubo);
-  cubo.position.x = 2;
+  cubo.position.x = 0;
+  cubo.position.y = -11;
 
-  //Esfera
-  var geoEsfera = new THREE.SphereGeometry(1, 30, 30);
-  var material = new THREE.MeshBasicMaterial({ color: 'yellow', wireframe: true });
-  esfera = new THREE.Mesh(geoEsfera, material);
+  //MARCO INFERIOR - SUPERIOR
+  var geoMarcoInferior = new THREE.BoxGeometry(28,0.5,1);
+  var matMarcoInferior = new THREE.MeshBasicMaterial({color : colorMarco});
 
-  //Suelo
-  var geoSuelo = new THREE.PlaneGeometry(10, 10, 12, 12);
-  var matSuelo = new THREE.MeshBasicMaterial({ color: 'grey', wireframe: false });
-  var suelo = new THREE.Mesh(geoSuelo, matSuelo);
-  suelo.rotation.x = -Math.PI / 2;
-  suelo.position.y = -0.1;
+  var marcoInferor = new THREE.Mesh(geoMarcoInferior,matMarcoInferior);
+  marcoInferor.position.y = -14;
 
+  var marcoSuperior = new THREE.Mesh(geoMarcoInferior,matMarcoInferior);
+  marcoSuperior.position.y=14;
+
+
+  //MARCO LATERAL DERECHO - IZQUIERDO
+  
+  var geoMarcoLateral = new THREE.BoxGeometry(0.5,28,1);
+  var matMarcoLateral = new THREE.MeshBasicMaterial({color : colorMarco});
+
+  var marcoLateralDerecho = new THREE.Mesh(geoMarcoLateral,matMarcoLateral);
+  marcoLateralDerecho.position.x = 15;
+
+  var marcoLateralIzquierdo = new THREE.Mesh(geoMarcoLateral,matMarcoLateral);
+  marcoLateralIzquierdo.position.x = -15;
+
+  
   //Grafo
+  conjunto.add(marcoInferor);
+  conjunto.add(marcoSuperior);
+  conjunto.add(marcoLateralDerecho);
+  conjunto.add(marcoLateralIzquierdo);
   conjunto.add(cubo);
-  cubo.add(esfera);
-  scene.add(conjunto);
   scene.add(new THREE.AxesHelper(3));
-  scene.add(suelo);
+  scene.add(conjunto);
 
-  // Objeto importado
-  var loader = new THREE.ObjectLoader();
-  loader.load('models/Mario/mario-sculpture.json',
-    function (objeto) {
-      objeto.scale.set(0.01, 0.01, 0.01);
-      objeto.rotation.y = Math.PI / 2;
-      cubo.add(objeto);
-    });
-
-  // Texto
-
-  var fontLoader = new THREE.FontLoader();
-  fontLoader.load('fonts/gentilis_bold.typeface.json',
-    function (font) {
-      var geoTexto = new THREE.TextGeometry(
-        'MARIO', {
-        size: 0.5,
-        height: 0.1,
-        curveSegments: 3,
-        style: "normal",
-        font: font,
-        bevelThickness: 0.05,
-        bevelSize: 0.04,
-        bevelEnabled: true
-      });
-      var matTexto = new THREE.MeshBasicMaterial({ color: 'red' });
-      var texto = new THREE.Mesh(geoTexto, matTexto);
-      scene.add(texto);
-    });
 }
 
 function update(){
   //Cambiar propeidadeas entre frames
-  angulo += Math.PI/100;
-  esfera.rotation.y = angulo;
-  conjunto.rotation.y = angulo/10;
+  angulo += Math.PI/10;
+  //esfera.rotation.y = angulo;
+  //conjunto.rotation.y = angulo/10;
 }
 
 function render() {
