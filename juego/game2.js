@@ -113,7 +113,12 @@ function start() {
     initKeys();
     var time = 0;
     
-    function mainLoop(timestamp) {
+    
+}
+
+function updateStatus() {
+    var s = document.getElementById("status");
+    if (game.lives === 0) {function mainLoop(timestamp) {
 	requestAnimationFrame(mainLoop);
 	renderer.render(scene, camera);
 	var delta = timestamp - time;
@@ -140,11 +145,6 @@ function start() {
 	}
     }
     mainLoop();
-}
-
-function updateStatus() {
-    var s = document.getElementById("status");
-    if (game.lives === 0) {
 	drawText("GAME OVER");
 	resetGame();
 	game.state = "over";
