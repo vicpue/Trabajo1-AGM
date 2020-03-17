@@ -45,6 +45,14 @@ init();
 render();
 
 
+function initLuces() {
+  var light = new THREE.DirectionalLight(0xffffff, 0.7);
+  var ambient = new THREE.AmbientLight(0xffffff, 0.2);
+  light.position.set(0, 4, 30);
+  scene.add(light);
+  scene.add(ambient);
+}
+
 function init() {
      //Motor de render
      renderer = new THREE.WebGLRenderer();
@@ -70,10 +78,7 @@ function init() {
      //Atender a eventos
      window.addEventListener('resize',updateAspectRatio);
      loadScene();
-     initKeys();
-     var delta = timestamp - time;
-	time = timestamp;
-     var paddleDelta = paddle.speed*delta/1000;
+     
     	if ((paddle.dir === -1 && paddle.x > paddleDelta) ||
     	    (paddle.dir === 1 && paddle.x + paddleDelta + paddle.width < width))
     	    paddle.x += paddleDelta * paddle.dir;
@@ -101,14 +106,12 @@ function loadScene() {
   var ballMaterial = new THREE.MeshBasicMaterial({color: 0xffffff});
   ball.mesh.add(new THREE.Mesh(ballGeometry, ballMaterial));
   scene.add(ball.mesh);
-  //game.state = "ready";
-  //resetPaddle();
+
 
 }
 
 function update(){
   angulo += Math.PI/10;
-  initKeys();
 }
 
 function render() {
@@ -124,19 +127,27 @@ function updateAspectRatio(){
     camera.updateProjectionMatrix();
    
 }
+document.addEventListener("keydown", onDocumentKeyDown, false);
+function onDocumentKeyDown(event) {
+    var keyCode = event.which;
+    // Izquierda
+    if (keyCode == 37) {
+        if(paddle.mesh.position.x > -Lateral+0.5+paddle.width/2)
+        paddle.mesh.position.x = paddle.mesh.position.x -0.5;
+        else{
+          paddle.mesh.position.x = -Lateral+0.5+paddle.width/2;
+        }
+      } 
+    // Derecha
+    if (keyCode == 39) {
+      if(paddle.mesh.position.x < Lateral-0.5-paddle.width/2)
+      paddle.mesh.position.x = paddle.mesh.position.x +0.5;
+      else{
+        paddle.mesh.position.x = Lateral-0.5-paddle.width/2;
+    } 
+  }
+};
 
-function initKeys(){
-  document.addEventListener("keydown", function(e) {
-    if (e.keyCode === 39)
-        paddle.dir = 1;
-    else if (e.keyCode === 37)
-        paddle.dir = -1;},false);
-  document.addEventListener("keyup", function(e) {
-  if ((e.keyCode === 39 && paddle.dir === 1) ||
-	    (e.keyCode === 37 && paddle.dir === -1))
-    	    paddle.dir = 0;
-    }, false);
-}
 
 function tablero(){
   //MARCO INFERIOR - SUPERIOR
@@ -208,10 +219,3 @@ function initCubos(){
   }
 }
 
-function initLuces() {
-  var light = new THREE.DirectionalLight(0xffffff, 3);
-  var ambient = new THREE.AmbientLight(0xffffff, 1);
-  light.position.set(0, 4, 30);
-  scene.add(light);
-  scene.add(ambient);
-}
