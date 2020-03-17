@@ -71,6 +71,12 @@ function init() {
      window.addEventListener('resize',updateAspectRatio);
      loadScene();
      initKeys();
+     var delta = timestamp - time;
+	time = timestamp;
+     var paddleDelta = paddle.speed*delta/1000;
+    	if ((paddle.dir === -1 && paddle.x > paddleDelta) ||
+    	    (paddle.dir === 1 && paddle.x + paddleDelta + paddle.width < width))
+    	    paddle.x += paddleDelta * paddle.dir;
 }
 
 function loadScene() {
@@ -102,6 +108,7 @@ function loadScene() {
 
 function update(){
   angulo += Math.PI/10;
+  initKeys();
 }
 
 function render() {
@@ -125,7 +132,7 @@ function initKeys(){
     else if (e.keyCode === 37)
         paddle.dir = -1;},false);
   document.addEventListener("keyup", function(e) {
-	if ((e.keyCode === 39 && paddle.dir === 1) ||
+  if ((e.keyCode === 39 && paddle.dir === 1) ||
 	    (e.keyCode === 37 && paddle.dir === -1))
     	    paddle.dir = 0;
     }, false);
@@ -158,7 +165,7 @@ function tablero(){
   var matMarcoFondo = new THREE.MeshBasicMaterial({color : colorMarco});
 
   var fondo = new THREE.Mesh(geoMarcoFondo,matMarcoFondo);
-  fondo.position.z = -2;
+  fondo.position.z = -4 ;
   
 
   //Grafo
@@ -172,7 +179,7 @@ function tablero(){
 
 
 function Cubo(x, y){
-  var geoCubo = new THREE.BoxGeometry(6, 2, 0.5);
+  var geoCubo = new THREE.BoxGeometry(6, 2, 3);
   var matCubo = new THREE.MeshBasicMaterial({ color: new THREE.Color(randColor(), randColor(), randColor())});
   var cubo = new THREE.Mesh(geoCubo, matCubo);
   cubo.position.x = x;
