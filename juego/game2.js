@@ -187,8 +187,7 @@ function detectCollisions() {
     }
     
     // paddle
-    if (ball.y-ball.radius < paddle.y+paddle.height
-	&& game.state === "running") {
+    if (ball.y-ball.radius < paddle.y+paddle.height && game.state === "running") {
 	if (ball.x >= paddle.x && ball.x < paddle.x+paddle.width) {
 	    ball.velocity.x += paddle.dir*50;
 	    ball.velocity.y = -ball.velocity.y;

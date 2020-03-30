@@ -1,4 +1,4 @@
-var blocks = [],
+ var blocks = [],
     width = 200,
     height = 100,
     ROWS = 16,

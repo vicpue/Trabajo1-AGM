@@ -12,7 +12,7 @@ var renderer=null,
   camera=null;
 
 var paddle = {
-    width: 7,
+    width: 10,
     height: 1,
     speed: 320,
     x: 0,
@@ -26,6 +26,17 @@ var ball = {
   radius: 1,
   velocity: {x: 0, y: 250},
   mesh: null
+};
+
+var cubo ={
+  
+  x: 0,
+  y: 0,
+  mesh: null
+}
+
+var juego ={
+  estado:"preparado"
 };
 
 //Otras Variables
@@ -47,17 +58,27 @@ render();
 
 function initLuces() {
   var light = new THREE.DirectionalLight(0xffffff, 0.7);
-  var ambient = new THREE.AmbientLight(0xffffff, 0.2);
   light.position.set(0, 4, 30);
+
+  var spotLight = new THREE.SpotLight(0xffffff,0.7);
+
+  spotLight.position.set(0,4,30);
+  spotLight.shadowCameraNear = 10;
+  spotLight.shadowCameraFar = 20;
+  spotLight.castShadow = true;
+
+  scene.add(spotLight);
+
   scene.add(light);
-  scene.add(ambient);
 }
 
 function init() {
      //Motor de render
      renderer = new THREE.WebGLRenderer();
      renderer.setSize(window.innerWidth,window.innerHeight);
-     renderer.setClearColor(new THREE.Color(0x000000))
+     renderer.setClearColor(new THREE.Color(0x000000));
+     renderer.shadowMap.enabled=true;
+     renderer.shadowMap.type = THREE.BasicShadowMap;
      document.getElementById('contenedor').appendChild(renderer.domElement);
       
      //Escena
@@ -76,12 +97,27 @@ function init() {
       cameraControls.noZoom = false;
       
      //Atender a eventos
+     var time = 0;
      window.addEventListener('resize',updateAspectRatio);
      loadScene();
-     
-    	if ((paddle.dir === -1 && paddle.x > paddleDelta) ||
-    	    (paddle.dir === 1 && paddle.x + paddleDelta + paddle.width < width))
-    	    paddle.x += paddleDelta * paddle.dir;
+
+
+    function mainLoop(timestamp) {
+    requestAnimationFrame(mainLoop);
+    renderer.render(scene, camera);
+    var delta = timestamp - time;
+    time = timestamp;
+    if (juego.estado === "jugando") {
+        ball.mesh.position.x += ball.velocity.x * delta / 8000;
+        ball.mesh.position.y += ball.velocity.y * delta / 8000;
+        detectarColisiones();
+    }
+    if (ball) {
+	    ball.mesh.position.x = ball.mesh.position.x;
+	    ball.mesh.position.y = ball.mesh.position.y;
+	}
+  }      
+        mainLoop();     
 }
 
 function loadScene() {
@@ -91,23 +127,60 @@ function loadScene() {
   conjunto.position.y = 0;
 
   scene.add(new THREE.AxesHelper(3));
-  tablero();  
-  initCubos();
   initLuces();
+  tablero();  
+  initCubos(); 
 
   var material = new THREE.MeshPhongMaterial({color: 0x00ff00});
   var paddleGeometry = new THREE.BoxGeometry(paddle.width, paddle.height, 2);
   paddle.mesh = new THREE.Mesh(paddleGeometry, material); 
-  paddle.mesh.position.x = 0
+  paddle.mesh.position.x = 0;
   paddle.mesh.position.y = -SupInf +3;
+  paddle.castShadow = true;
+  paddle.recevieShadow = true;
   scene.add(paddle.mesh);
-  ball.mesh = new THREE.PointLight(0xffffff, 1, 20);
+  ball.mesh = new THREE.PointLight(0xffffff, 1, 10);
   var ballGeometry = new THREE.SphereGeometry(ball.radius);
   var ballMaterial = new THREE.MeshBasicMaterial({color: 0xffffff});
   ball.mesh.add(new THREE.Mesh(ballGeometry, ballMaterial));
+  ball.mesh.position.x = paddle.mesh.position.x;
+  ball.mesh.position.y = paddle.mesh.position.y+1.5;
   scene.add(ball.mesh);
+  
 
+}
 
+function detectarColisiones(){
+  
+  if(ball.mesh.position.x + ball.radius > Lateral){
+    ball.velocity.x= -ball.velocity.x;
+    ball.mesh.position.x= Lateral -ball.radius;
+    return;
+  }
+
+  if(ball.mesh.position.x + ball.radius < -Lateral){
+    ball.velocity.x= -ball.velocity.x;
+    ball.mesh.position.x= -Lateral +ball.radius;
+    return;
+  }
+
+  if(ball.mesh.position.y + ball.radius > SupInf){
+    ball.velocity.y= -ball.velocity.y;
+    ball.mesh.position.y= SupInf -ball.radius;
+    return;
+  }
+
+  //paddle
+  if (ball.mesh.position.y-ball.radius < paddle.mesh.position.y + paddle.height && juego.estado === "jugando") {
+      if(ball.mesh.position.x >= paddle.mesh.position.x-paddle.width/2 && ball.mesh.position.x <paddle.mesh.position.x+paddle.width/2){        
+        ball.velocity.y = -ball.velocity.y;
+        ball.mesh.position.y = paddle.mesh.position.y+paddle.height+ball.radius;
+      }else{
+        ball.velocity.x = 0;
+        ball.velocity.y = 0;
+      }
+  }
+  return;
 }
 
 function update(){
@@ -127,35 +200,50 @@ function updateAspectRatio(){
     camera.updateProjectionMatrix();
    
 }
+
 document.addEventListener("keydown", onDocumentKeyDown, false);
 function onDocumentKeyDown(event) {
-    var keyCode = event.which;
-    // Izquierda
-    if (keyCode == 37) {
-        if(paddle.mesh.position.x > -Lateral+0.5+paddle.width/2)
-        paddle.mesh.position.x = paddle.mesh.position.x -0.5;
-        else{
-          paddle.mesh.position.x = -Lateral+0.5+paddle.width/2;
+  var keyCode = event.which;
+  // Izquierda
+  if (keyCode === 37) {
+      if(paddle.mesh.position.x > -Lateral+0.5+paddle.width/2){
+      paddle.mesh.position.x = paddle.mesh.position.x -0.7;
+        if(juego.estado == "preparado"){
+          ball.mesh.position.x = ball.mesh.position.x -0.7;
         }
-      } 
-    // Derecha
-    if (keyCode == 39) {
-      if(paddle.mesh.position.x < Lateral-0.5-paddle.width/2)
-      paddle.mesh.position.x = paddle.mesh.position.x +0.5;
+      }
       else{
-        paddle.mesh.position.x = Lateral-0.5-paddle.width/2;
+        paddle.mesh.position.x = -Lateral+0.5+paddle.width/2;
+      }
     } 
+  // Derecha
+  if (keyCode === 39) {
+    if(paddle.mesh.position.x < Lateral-0.5-paddle.width/2){
+    paddle.mesh.position.x = paddle.mesh.position.x +0.7;
+      if(juego.estado == "preparado"){
+        ball.mesh.position.x = ball.mesh.position.x +0.7;
+      }
+    }
+    else{
+      paddle.mesh.position.x = Lateral-0.5-paddle.width/2;
+    }
+  }
+  //Espacio
+  if (keyCode === 32 && juego.estado === "preparado") {
+    ball.velocity.x += 25;
+    juego.estado = "jugando";
   }
 };
-
 
 function tablero(){
   //MARCO INFERIOR - SUPERIOR
   var geoMarcoInferior = new THREE.BoxGeometry(36,1,1);
-  var matMarcoInferior = new THREE.MeshBasicMaterial({color : colorMarco});
+  var matMarcoInferior = new THREE.MeshPhongMaterial({color : colorMarco});
 
   var marcoInferor = new THREE.Mesh(geoMarcoInferior,matMarcoInferior);
   marcoInferor.position.y = -SupInf;
+  marcoInferor.recevieShadow = true;
+  marcoInferor.castShadow = true;
 
   var marcoSuperior = new THREE.Mesh(geoMarcoInferior,matMarcoInferior);
   marcoSuperior.position.y= SupInf;
@@ -163,7 +251,7 @@ function tablero(){
   //MARCO LATERAL DERECHO - IZQUIERDO
   
   var geoMarcoLateral = new THREE.BoxGeometry(1,44,1);
-  var matMarcoLateral = new THREE.MeshBasicMaterial({color : colorMarco});
+  var matMarcoLateral = new THREE.MeshPhongMaterial({color : colorMarco});
 
   var marcoLateralDerecho = new THREE.Mesh(geoMarcoLateral,matMarcoLateral);
   marcoLateralDerecho.position.x = Lateral;
@@ -173,10 +261,11 @@ function tablero(){
 
   //FONDO
   var geoMarcoFondo = new THREE.BoxGeometry(36,44,1);
-  var matMarcoFondo = new THREE.MeshBasicMaterial({color : colorMarco});
+  var matMarcoFondo = new THREE.MeshPhongMaterial({color : colorMarco});
 
   var fondo = new THREE.Mesh(geoMarcoFondo,matMarcoFondo);
   fondo.position.z = -4 ;
+  fondo.recevieShadow = true;
   
 
   //Grafo
@@ -187,17 +276,17 @@ function tablero(){
   scene.add(fondo);
 }
 
-
-
 function Cubo(x, y){
+  var matCubo = new THREE.MeshPhongMaterial({ color: new THREE.Color(randColor(), randColor(), randColor())});
   var geoCubo = new THREE.BoxGeometry(6, 2, 3);
-  var matCubo = new THREE.MeshBasicMaterial({ color: new THREE.Color(randColor(), randColor(), randColor())});
-  var cubo = new THREE.Mesh(geoCubo, matCubo);
-  cubo.position.x = x;
-  cubo.position.y = y;
+  cubo.mesh = new THREE.Mesh(geoCubo, matCubo);
+  cubo.mesh.position.x = x;
+  cubo.mesh.position.y = y;
+  cubo.recevieShadow = true;
+  cubo.mesh.castShadow = true;
   
-  scene.add(cubo);
-
+  
+  scene.add(cubo.mesh);
 }
 
 function randColor() {
